@@ -1,4 +1,4 @@
-Chrome Php Logger 0.0.2
+Chrome Php Logger 0.0.3
 =======================
 
 Module to log useful details directly in your Chrome JS console. You can inspect most as objects and see infos or values.
@@ -6,7 +6,6 @@ Module to log useful details directly in your Chrome JS console. You can inspect
 To enable logging with this module you have to enable debug modus in site/config.php. If debug is set to false, it will not output any log.
 
 **Important:** It is not recommended to enable it on live stage, as it reveals infos you might not want everybody to see, although it's not obvious as it requires the ChromePhp Extension installed and enabled.
-
 
 - logs render time
 - memory consumption
