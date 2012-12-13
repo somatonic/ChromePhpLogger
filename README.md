@@ -12,6 +12,7 @@ Module to log useful details directly in you Chrome JS console. You can inspect 
 - fuel
 - modules loaded
 - server vars etc.
+- mySQL query log
 
 **Note:**
 This module requires the ChromePhp Extension installed to see the log in the Javascript console.
