@@ -12,6 +12,8 @@
  *
  */
 
+$dirname = dirname(__FILE__);
+require_once($dirname . "/ChromePhp.php");
 
 class ChromePhpLogger extends WireData implements Module {
 
@@ -26,8 +28,8 @@ class ChromePhpLogger extends WireData implements Module {
         return array(
             'title' => 'Chrome PHP Debug',
             'version' => 1,
-            'summary' => 'Server Side Chrome PHP debugger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
-                        .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various debug infos in Chrome JS console for inspecting.',
+            'summary' => 'Server Side Chrome PHP logger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
+                        .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various on request infos in Chrome JS console for inspecting.',
             'href' => '',
             'singular' => true,
             'autoload' => true
@@ -38,7 +40,8 @@ class ChromePhpLogger extends WireData implements Module {
 
     public function init() {
         //if(!$this->user->isSuperuser()) return;
-        include_once($this->config->paths->ChromePhpLogger . "ChromePhp.php");
+        //disable in admin
+        if(strpos($_SERVER['REQUEST_URI'],$this->config->urls->admin) !== false) return;
         $this->addHookBefore("Page::render", $this, "startDebug");
         $this->addHookAfter("Page::render", $this, "renderDebug");
     }
