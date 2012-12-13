@@ -1,11 +1,16 @@
-Chrome Php Logger 0.0.1
+Chrome Php Logger 0.0.2
 =======================
 
 Module to log useful details directly in your Chrome JS console. You can inspect most as objects and see infos or values.
 
+To enable logging with this module you have to enable debug modues in config.php. If debug is set to false in config.php, it will not output any log.
+
+**Important:** It is not recommended to enable it on live stage, as it reveal infos you might not want everybody to see, although it's not obvious as requires the ChromePhp Extension installed and enabled.
+
+
 - logs render time
 - memory consumption
-- cpu usage
+- cpu usage (not supported on Windows)
 - user infos with permissions and current page permissions
 - current page with all its fields and their value and field settings
 - page cache/loaded on request count
@@ -14,7 +19,7 @@ Module to log useful details directly in your Chrome JS console. You can inspect
 - server vars etc.
 - mySQL query log
 
-When installed you can also use ChromePhp static methods to output your own data your templates or modules:
+When installed you can also use ChromePhp static methods to output your own data your templates:
 
 ```
 ChromePhp::log($page->somefield);

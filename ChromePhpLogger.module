@@ -27,7 +27,7 @@ class ChromePhpLogger extends WireData implements Module {
 
         return array(
             'title' => 'Chrome PHP Debug',
-            'version' => 1,
+            'version' => 002,
             'summary' => 'Server Side Chrome PHP logger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
                         .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various on request infos in Chrome JS console for inspecting.',
             'href' => '',
@@ -42,15 +42,22 @@ class ChromePhpLogger extends WireData implements Module {
         //if(!$this->user->isSuperuser()) return;
         //disable in admin
         if(strpos($_SERVER['REQUEST_URI'],$this->config->urls->admin) !== false) return;
+        if($this->config->debug == false) return;
+
+        $this->getrusage = (function_exists('getrusage'));
+
         $this->addHookBefore("Page::render", $this, "startDebug");
         $this->addHookAfter("Page::render", $this, "renderDebug");
     }
 
     public function startDebug(){
         $this->time_start = microtime(true);
-        $dat = getrusage();
-        define('PHP_TUSAGE', $this->time_start);
-        define('PHP_RUSAGE', $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"]);
+
+        if($this->getrusage) {
+            $dat = getrusage();
+            define('PHP_TUSAGE', $this->time_start);
+            define('PHP_RUSAGE', $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"]);
+        }
     }
 
     public function renderDebug($event) {
@@ -58,20 +65,23 @@ class ChromePhpLogger extends WireData implements Module {
         $time_end = microtime(true);
         $execution_time = ($time_end - $this->time_start);
 
-        $dat = getrusage();
-        $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - PHP_RUSAGE;
-        $time = ($time_end - PHP_TUSAGE) * 1000000;
-
-        // cpu per request
-        if($time > 0) {
-            $cpu = sprintf("%01.2f", ($dat["ru_utime.tv_usec"] / $time) * 100);
-        } else {
-            $cpu = '0.00';
+        // TODO: windows compatible script?
+        if($this->getrusage) {
+            $dat = getrusage();
+            $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - PHP_RUSAGE;
+            $time = ($time_end - PHP_TUSAGE) * 1000000;
+            // cpu per request
+            if($time > 0) {
+                $cpu = sprintf("%01.2f", ($dat["ru_utime.tv_usec"] / $time) * 100);
+            } else {
+                $cpu = '0.00';
+            }
         }
 
         ChromePhp::log("PageRenderTime: ".$execution_time . " s");
         ChromePhp::log("Memory: ". number_format(memory_get_usage()/1024/1024,2) . " Mb");
-        ChromePhp::log("CPU: " . $cpu . "%");
+        if($this->getrusage) ChromePhp::log("CPU: " . $cpu . "%");
+            else ChromePhp::log("CPU: getrusage() not supported on this system");
         ChromePhp::log("PagesCacheCount: ". count($this->pages->getCache()));
 
         /**
