@@ -1,4 +1,4 @@
-Chrome Php Logger 1.0.0
+Chrome Php Logger 0.0.1
 =======================
 
 Module to log useful details directly in you Chrome JS console. You can inspect most as objects and see infos or values.
