@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * ProcessWire Module
+ *
+ * Chrome Php Debug Module
+ * @created 12/12/12 by Philipp 'Soma' Urlich
+ *
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+
+
+class ChromePhpLogger extends WireData implements Module {
+
+    /**
+     * getModuleInfo is a module required by all modules to tell ProcessWire about them
+     *
+     * @return array
+     *
+     */
+    public static function getModuleInfo() {
+
+        return array(
+            'title' => 'Chrome PHP Debug',
+            'version' => 100,
+            'summary' => 'Server Side Chrome PHP debugger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
+                        .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various debug infos in Chrome JS console for inspecting.',
+            'href' => '',
+            'singular' => true,
+            'autoload' => true
+            );
+    }
+
+    public function __construct() {}
+
+    public function init() {
+        //if(!$this->user->isSuperuser()) return;
+        include_once($this->config->paths->ChromePhpLogger . "ChromePhp.php");
+        $this->addHookBefore("Page::render", $this, "startDebug");
+        $this->addHookAfter("Page::render", $this, "renderDebug");
+    }
+
+    public function startDebug(){
+        $this->time_start = microtime(true);
+        $dat = getrusage();
+        define('PHP_TUSAGE', $this->time_start);
+        define('PHP_RUSAGE', $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"]);
+    }
+
+    public function renderDebug($event) {
+
+        $time_end = microtime(true);
+        $execution_time = ($time_end - $this->time_start);
+
+        $dat = getrusage();
+        $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - PHP_RUSAGE;
+        $time = ($time_end - PHP_TUSAGE) * 1000000;
+
+        // cpu per request
+        if($time > 0) {
+            $cpu = sprintf("%01.2f", ($dat["ru_utime.tv_usec"] / $time) * 100);
+        } else {
+            $cpu = '0.00';
+        }
+
+        ChromePhp::log("PageRenderTime: ".$execution_time . " s");
+        ChromePhp::log("Memory: ". number_format(memory_get_usage()/1024/1024,2) . " Mb");
+        ChromePhp::log("CPU: " . $cpu . "%");
+        ChromePhp::log("PagesCacheCount: ". count($this->pages->getCache()));
+
+        /**
+         * output all fields and their settings from the current page
+         */
+
+        $page = $event->object;
+        $pagedata = array();
+        foreach($page->fields as $f){
+            if($f->type == "FieldtypeFieldsetTabOpen") continue;
+            if($f->type == "FieldtypeFieldsetTabClose") continue;
+            if($f->type == "FieldtypeFieldsetOpen") continue;
+            if($f->type == "FieldtypeFieldsetClose") continue;
+            $pagedata["$f->name $f->type"] = array('value' => $page->$f, "settings" => $f->getArray());
+        }
+        $pagedata["name InputfieldPageName"] = array('value' => $page->name, "settings" => null);
+        $pagedata["url"] = array('value' => $page->url, "settings" => null);
+        $pagedata["template"] = array('value' => $page->template, "settings" => null);
+        ChromePhp::log(array("CurrentPage" => $pagedata));
+
+        /**
+         * user data
+         */
+
+        $userdata = array();
+        foreach($this->user->fields as $f){
+            if($f->type == "FieldtypeFieldsetTabOpen") continue;
+            if($f->type == "FieldtypeFieldsetTabClose") continue;
+            if($f->type == "FieldtypeFieldsetOpen") continue;
+            if($f->type == "FieldtypeFieldsetClose") continue;
+            $userdata["$f->name $f->type"] = array('value' => $this->user->$f, "settings" => $f->getArray());
+        }
+        $userdata["name InputfieldPageName"] = array('value' => $this->user->name, "settings" => null);
+        ChromePhp::log(array("CurrenUserData" => $userdata));
+
+
+        /**
+         * get user roles and permissions for current users
+         */
+        $userroles = array();
+        $permissions = array();
+        foreach($this->user->roles as $role){
+            foreach($this->roles->get($role->name)->permissions->getArray() as $perm) $permissions[] = $perm->name;
+            $userroles["$role->name"]["permissions"] = $permissions;
+        }
+        ChromePhp::log(array("CurrentUserRoles: " => $userroles));
+
+        $pagepermissions = array();
+        foreach($this->user->getPermissions($page) as $permission){
+            $pagepermissions[] = $permission->name;
+        }
+        ChromePhp::log(array("CurrentUserPermissionsOnPage: " => $pagepermissions));
+
+        /**
+         * output pages in loaded/cached for this request
+         */
+        $pagecache = array();
+        foreach($this->pages->getCache() as $key => $p) {
+            $pagecache["$p->title"] = $p->getArray();
+        }
+        ChromePhp::log(array("PagesCache" => $pagecache));
+
+        /**
+         * The fuel for the current request, this are the template variables
+         */
+        $fuel = array();
+        foreach($this->fuel as $key => $value) $fuel[] = $key;
+        ChromePhp::log(array('Fuel' => $fuel));
+
+        /**
+         * modules loaded
+         */
+        $modulesloaded = array();
+        foreach($this->modules as $module) {
+            if(!$module instanceof ModulePlaceholder)
+                $modulesloaded[] = $module->className() . ": " . get_class($module);
+        }
+        ChromePhp::log(array('Modules' => $modulesloaded));
+
+        /**
+         * output some useful server vars
+         */
+        ChromePhp::log(array("ServerVars" => $_SERVER));
+        ChromePhp::log(array("Cookies" => $_COOKIE));
+        ChromePhp::log(array("Request" => $_REQUEST));
+
+        $querylog = array();
+        foreach($this->db->getQueryLog() as $n => $sql) {
+            $querylog["MySQLQueries"][$n] = $sql;
+        }
+        ChromePhp::log($querylog);
+
+    }
+
+
+}
