@@ -14,6 +14,12 @@ Module to log useful details directly in your Chrome JS console. You can inspect
 - server vars etc.
 - mySQL query log
 
+When installed you can also use ChromePhp static methods to output your own data your templates:
+
+```
+ChromePhp::log($page->somefield);
+```
+
 **Note:**
 This module requires the ChromePhp Extension installed to see the log in the Javascript console.
 More infos can be found on http://chromephp.com.
