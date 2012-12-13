@@ -1,7 +1,7 @@
 Chrome Php Logger 0.0.1
 =======================
 
-Module to log useful details directly in you Chrome JS console. You can inspect most as objects and see infos or values.
+Module to log useful details directly in your Chrome JS console. You can inspect most as objects and see infos or values.
 
 - logs render time
 - memory consumption
