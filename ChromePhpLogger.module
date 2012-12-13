@@ -3,13 +3,12 @@
 /**
  * ProcessWire Module
  *
- * Chrome Php Debug Module
+ * Chrome Php Logger
  * @created 12/12/12 by Philipp 'Soma' Urlich
  *
  * Licensed under GNU/GPL v2, see LICENSE.TXT
  *
  * http://www.processwire.com
- * http://www.ryancramer.com
  *
  */
 
