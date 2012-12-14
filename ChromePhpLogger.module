@@ -207,9 +207,11 @@ class ChromePhpLogger extends WireData implements Module {
             if(count($page->$field)){
                 if($page->$field instanceof PageArray){
                     foreach($page->$field as $o) $value[$o->id] = $o->getIterator();
-                } else {
-                    $value[$page->$field->id] = $page->$field->getIterator();
                 }
+            } else {
+                //ChromePhp::log($page->$field->name);
+                $value[$page->$field->id] = $page->$field->getArray();
+
             }
         } else if($field->type == "FieldtypeImage" || $field->type == " FieldtypeFile"){
             if(count($page->$field)){
