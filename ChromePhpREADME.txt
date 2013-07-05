@@ -1,16 +1,23 @@
-version 3.0
-This class requires PHP 5 or later.
+## Overview
+ChromePhp is a PHP library for the Chrome Logger Google Chrome extension.
 
-ChromePhp is a PHP class to go along with the ChromePhp Google Chrome extension.
+This library allows you to log variables to the Chrome console.
 
-This class allows you to log variables to the Chrome console.
+## Requirements
+- PHP 5 or later
 
-INSTALLATION
-1.  Download the Chrome extension from: https://chrome.google.com/extensions/detail/noaneddfkdjfnfdakjjmocngnfkfehhd
-2.  Put ChromePhp.php somewhere in your PHP include path
-3.  Click the extension icon on the browser to enable it for the current site
-3.  include 'ChromePhp.php';
-4.  ChromePhp::log('hello world');
+## Installation
+1. Install the Chrome extension from: https://chrome.google.com/extensions/detail/noaneddfkdjfnfdakjjmocngnfkfehhd
+2. Click the extension icon in the browser to enable it for the current tab's domain
+3. Put ChromePhp.php somewhere in your PHP include path
+4. Log some data
+
+    ```php
+    include 'ChromePhp.php';
+    ChromePhp::log('Hello console!');
+    ChromePhp::log($_SERVER);
+    ChromePhp::warn('something went wrong!');
+    ```
 
 More information can be found here:
-http://www.chromephp.com
+http://www.chromelogger.com

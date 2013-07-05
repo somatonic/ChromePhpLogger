@@ -1,4 +1,4 @@
-Chrome Php Logger 0.0.3
+Chrome Php Logger 0.0.4
 =======================
 
 Module to log useful details directly in your Chrome JS console. You can inspect most as objects and see infos or values.
@@ -25,7 +25,7 @@ ChromePhp::log($page->somefield);
 ```
 
 **Note:**
-This module requires the ChromePhp Extension installed to see the log in the Javascript console.
+This module requires the ChromeLogger 4.0.2+ Extension installed to see the log in the Javascript console.
 More infos can be found on http://chromephp.com.
 
 created: 12/12/12 by Philipp "Soma" Urlich
