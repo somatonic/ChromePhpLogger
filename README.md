@@ -24,6 +24,12 @@ When installed you can also use ChromePhp static methods to output your own data
 ChromePhp::log($page->somefield);
 ```
 
+Since 0.0.5 you can also skip the logging for a page by setting the property ```skipChromePhpLogger``` to the page object
+
+```
+$page->skipChromePhpLogger = 1;
+```
+
 **Note:**
 This module requires the ChromeLogger 4.0.2+ Extension installed to see the log in the Javascript console.
 More infos can be found on http://chromephp.com.

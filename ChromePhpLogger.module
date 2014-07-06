@@ -27,7 +27,7 @@ class ChromePhpLogger extends WireData implements Module {
 
         return array(
             'title' => 'Chrome PHP Debug',
-            'version' => 004,
+            'version' => 005,
             'summary' => 'Server Side Chrome PHP logger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
                         .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various on request infos in Chrome JS console for inspecting.',
             'href' => '',
@@ -64,16 +64,26 @@ class ChromePhpLogger extends WireData implements Module {
     /**
      * start the debug timer
      */
-    public function startDebug(){
+    public function startDebug(HookEvent $event){
+
+        // user $page->skipChromePhpLogger = 1 to skip logging
+        if($event->object->skipChromePhpLogger) return;
+
         $this->time_start = microtime(true);
         if($this->getrusage) {
             $dat = getrusage();
-            define('PHP_TUSAGE', $this->time_start);
-            define('PHP_RUSAGE', $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"]);
+            // define('PHP_TUSAGE', $this->time_start);
+            // define('PHP_RUSAGE', $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"]);
+            $this->rusage = $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"];
         }
     }
 
-    public function renderDebug($event) {
+    public function renderDebug(HookEvent $event) {
+
+        $page = $event->object;
+
+        // user $page->skipChromePhpLogger = 1 to skip logging
+        if($page->skipChromePhpLogger) return;
 
         $time_end = microtime(true);
         $execution_time = ($time_end - $this->time_start);
@@ -81,8 +91,8 @@ class ChromePhpLogger extends WireData implements Module {
         // TODO: windows compatible script?
         if($this->getrusage) {
             $dat = getrusage();
-            $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - PHP_RUSAGE;
-            $time = ($time_end - PHP_TUSAGE) * 1000000;
+            $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - $this->rusage;
+            $time = ($time_end - $this->time_start) * 1000000;
             // cpu per request
             if($time > 0) {
                 $cpu = sprintf("%01.2f", ($dat["ru_utime.tv_usec"] / $time) * 100);
@@ -100,7 +110,6 @@ class ChromePhpLogger extends WireData implements Module {
         /**
          * output all fields and their settings from the current page
          */
-        $page = $event->object;
         $pagedata = array();
         //$pagedata = $page->getIterator();
 
@@ -111,7 +120,7 @@ class ChromePhpLogger extends WireData implements Module {
         }
         $pagedata["name InputfieldPageName"] = array('value' => $page->name, "settings" => null);
         $pagedata["url"] = array('value' => $page->url, "settings" => null);
-        $pagedata["template"] = array('value' => $page->template, "settings" => null);
+        $pagedata["template"] = array('value' => $page->template->name, "settings" => $page->template->getArray());
         ChromePhp::log(array("CurrentPage" => $pagedata));
 
         /**
