@@ -27,7 +27,7 @@ class ChromePhpLogger extends WireData implements Module {
 
         return array(
             'title' => 'Chrome PHP Debug',
-            'version' => 005,
+            'version' => 006,
             'summary' => 'Server Side Chrome PHP logger. Requires http://www.chromephp.com/ Chrome Php Extension, install and enable it on the site you want to inspect.'
                         .' Includes ChromePhp debug class @ by Craig Campbell. Outputs various on request infos in Chrome JS console for inspecting.',
             'href' => '',
@@ -43,6 +43,8 @@ class ChromePhpLogger extends WireData implements Module {
      *
      */
     public function init() {
+
+        if (!$this->enableDebugging) return;
 
         //disable in admin on /processwire/ requests
         if(strpos($_SERVER['REQUEST_URI'],$this->config->urls->admin) !== false) return;
